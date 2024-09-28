@@ -2,17 +2,27 @@ import requests
 import json
 
 def emotion_detector(text_to_analyze):
+    if not text_to_analyze.strip():  # Check if the input text is empty or just whitespace
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
+
     url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
     headers = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
     data = {"raw_document": {"text": text_to_analyze}}
 
     response = requests.post(url, headers=headers, json=data)
-    
+
     if response.status_code == 200:
-        # Parse the response to extract emotion scores
+        # Convert response to a dictionary
         emotions = response.json()
-        emotion_scores = emotions['emotionPredictions'][0]['emotion']  # Accessing emotion scores
-        
+        emotion_scores = emotions['emotionPredictions'][0]['emotion']
+
         # Extracting required emotions
         anger_score = emotion_scores.get('anger', 0)
         disgust_score = emotion_scores.get('disgust', 0)
@@ -40,4 +50,12 @@ def emotion_detector(text_to_analyze):
             'dominant_emotion': dominant_emotion
         }
     else:
-        return f"Error: {response.status_code}, {response.text}"
+        # If the server returns an error, return None for all emotions
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
